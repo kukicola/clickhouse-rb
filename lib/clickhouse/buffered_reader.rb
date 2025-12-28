@@ -53,8 +53,17 @@ module Clickhouse
     def fill
       return if @eof
 
-      chunk = @io.readpartial
-      chunk ? @buffer << chunk : @eof = true
+      loop do
+        chunk = @io.readpartial
+        if chunk.nil?
+          @eof = true
+          break
+        elsif !chunk.empty?
+          @buffer << chunk
+          break
+        end
+        # Empty chunk - keep reading (gzip header processing)
+      end
     end
   end
 end
