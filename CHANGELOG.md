@@ -1,4 +1,4 @@
-## [Unreleased]
+## [0.2.0] - 2025-12-28
 
 - Added instrumentation support with configurable `instrumenter` (defaults to `NullInstrumenter`)
 - Query errors now raise `Clickhouse::QueryError` instead of returning a failed response
