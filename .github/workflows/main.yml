@@ -28,6 +28,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        env:
+          CLICKHOUSE_PASSWORD: password
 
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +43,7 @@ jobs:
       - name: Run tests
         run: bundle exec rspec
         env:
-          CLICKHOUSE_URL: http://default:@localhost:8123/default
+          CLICKHOUSE_URL: http://default:password@localhost:8123/default
 
   lint:
     runs-on: ubuntu-latest
