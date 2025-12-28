@@ -1,0 +1,183 @@
+# clickhouse-rb
+
+Fast Ruby client for ClickHouse database using the Native binary format for efficient data transfer.
+
+## Features
+
+- Native binary format parsing (faster than JSON/TSV)
+- Persistent HTTP connections
+- Connection pooling for thread-safe concurrent access
+- Supports all common ClickHouse data types
+
+## Installation
+
+Add to your Gemfile:
+
+```ruby
+gem "clickhouse-rb"
+```
+
+Then run:
+
+```bash
+bundle install
+```
+
+## Usage
+
+### Configuration
+
+```ruby
+require "clickhouse"
+
+Clickhouse.configure do |config|
+  config.host = "localhost"
+  config.port = 8123
+  config.database = "default"
+  config.username = "default"
+  config.password = ""
+end
+```
+
+Or configure via URL:
+
+```ruby
+Clickhouse.configure do |config|
+  config.url = "http://user:pass@localhost:8123/mydb"
+end
+```
+
+### Single Connection
+
+```ruby
+conn = Clickhouse::Connection.new
+response = conn.query("SELECT * FROM users WHERE id = 1")
+
+if response.success?
+  response.rows.each do |row|
+    puts row.inspect
+  end
+end
+```
+
+### Connection Pool
+
+For multi-threaded applications:
+
+```ruby
+pool = Clickhouse::Pool.new
+
+# Thread-safe queries
+threads = 10.times.map do
+  Thread.new { pool.query("SELECT 1") }
+end
+threads.each(&:join)
+```
+
+Pool size and timeout are configured globally:
+
+```ruby
+Clickhouse.configure do |config|
+  config.pool_size = 10
+  config.pool_timeout = 5
+end
+```
+
+### Working with Results
+
+```ruby
+response = conn.query("SELECT id, name, created_at FROM users")
+
+# Access raw rows (arrays)
+response.rows      # => [[1, "Alice", 2024-01-01 00:00:00 UTC], ...]
+response.columns   # => ["id", "name", "created_at"]
+response.types     # => ["UInt64", "String", "DateTime"]
+
+# Convert to array of hashes
+response.to_a      # => [{"id" => 1, "name" => "Alice", ...}, ...]
+
+# Check for errors
+response.success?  # => true
+response.failure?  # => false
+response.error     # => nil (or error message string)
+
+# Query summary from ClickHouse
+response.summary   # => {"read_rows" => "1", "read_bytes" => "42", ...}
+```
+
+### Query Parameters
+
+```ruby
+response = conn.query(
+  "SELECT * FROM users WHERE id = {id:UInt64}",
+  params: { param_id: 123 }
+)
+```
+
+## Supported Data Types
+
+| ClickHouse Type | Ruby Type |
+|-----------------|-----------|
+| UInt8/16/32/64 | Integer |
+| UInt128/256 | Integer |
+| Int8/16/32/64 | Integer |
+| Int128/256 | Integer |
+| Float32/64 | Float |
+| Decimal | BigDecimal |
+| Bool | TrueClass/FalseClass |
+| String, FixedString | String |
+| Date, Date32 | Date |
+| DateTime, DateTime64 | Time |
+| UUID | String |
+| IPv4, IPv6 | IPAddr |
+| Enum8, Enum16 | Integer |
+| Array | Array |
+| Tuple | Array |
+| Map | Hash |
+| Nullable | nil or inner type |
+| LowCardinality | inner type |
+
+## Configuration Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `scheme` | `"http"` | URL scheme (http/https) |
+| `host` | `"localhost"` | ClickHouse server host |
+| `port` | `8123` | ClickHouse HTTP port |
+| `database` | `"default"` | Database name |
+| `username` | `""` | Authentication username |
+| `password` | `""` | Authentication password |
+| `connection_timeout` | `5` | Connection timeout in seconds |
+| `pool_size` | `100` | Connection pool size |
+| `pool_timeout` | `5` | Pool checkout timeout in seconds |
+
+## Error Handling
+
+```ruby
+response = conn.query("INVALID SQL")
+
+if response.failure?
+  puts "Query failed: #{response.error}"
+end
+
+# Unsupported types raise an exception
+begin
+  conn.query("SELECT '{}'::JSON")
+rescue Clickhouse::UnsupportedTypeError => e
+  puts "Unsupported type: #{e.message}"
+end
+```
+
+## Development
+
+```bash
+# Run tests (requires ClickHouse)
+CLICKHOUSE_URL=http://default:password@localhost:8123/default bundle exec rspec
+
+# Run linter
+bundle exec standardrb
+```
+
+## License
+
+MIT License
