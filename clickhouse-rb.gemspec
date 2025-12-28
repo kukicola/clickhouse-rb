@@ -14,8 +14,6 @@ Gem::Specification.new do |spec|
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
 
-  spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = spec.homepage
   spec.metadata["changelog_uri"] = "#{spec.homepage}/blob/main/CHANGELOG.md"
 
   gemspec = File.basename(__FILE__)
@@ -27,7 +25,7 @@ Gem::Specification.new do |spec|
   end
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "http", "~> 5.0"
-  spec.add_dependency "bigdecimal"
+  spec.add_dependency "bigdecimal", "~> 3.1"
   spec.add_dependency "connection_pool", "~> 2.4"
+  spec.add_dependency "http", "~> 5.0"
 end
