@@ -30,18 +30,17 @@ module Clickhouse
     # @param sql [String] SQL query to execute
     # @param options [Hash] query options
     # @option options [Hash] :params query parameters
-    # @return [TransportResult] result containing body or error
+    # @return [TransportResult] result containing body and summary
+    # @raise [QueryError] if the query fails
     def execute(sql, options = {})
       query_params = {database: @config.database}.merge(options[:params] || {})
       response = @http_client.post("/", params: query_params, body: sql, headers: @default_headers)
 
       summary = JSON.parse(response.headers["X-ClickHouse-Summary"])
 
-      if response.status.success?
-        TransportResult.new(success: true, body: response.body, error: nil, summary: summary)
-      else
-        TransportResult.new(success: false, body: nil, error: response.body.to_s, summary: summary)
-      end
+      raise QueryError, response.body.to_s unless response.status.success?
+
+      TransportResult.new(body: response.body, summary: summary)
     end
   end
 end

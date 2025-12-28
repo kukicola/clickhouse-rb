@@ -28,6 +28,9 @@ module Clickhouse
   # Base error class for all Clickhouse errors
   class Error < StandardError; end
 
+  # Raised when a query fails (syntax error, unknown table, etc.)
+  class QueryError < Error; end
+
   # Raised when encountering an unsupported ClickHouse data type
   class UnsupportedTypeError < Error; end
 

@@ -96,11 +96,6 @@ response.types     # => ["UInt64", "String", "DateTime"]
 # Convert to array of hashes
 response.to_a      # => [{"id" => 1, "name" => "Alice", ...}, ...]
 
-# Check for errors
-response.success?  # => true
-response.failure?  # => false
-response.error     # => nil (or error message string)
-
 # Query summary from ClickHouse
 response.summary   # => {"read_rows" => "1", "read_bytes" => "42", ...}
 ```
@@ -154,10 +149,10 @@ response = conn.query(
 ## Error Handling
 
 ```ruby
-response = conn.query("INVALID SQL")
-
-if response.failure?
-  puts "Query failed: #{response.error}"
+begin
+  conn.query("INVALID SQL")
+rescue Clickhouse::QueryError => e
+  puts "Query failed: #{e.message}"
 end
 
 # Unsupported types raise an exception

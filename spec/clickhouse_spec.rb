@@ -26,7 +26,6 @@ RSpec.describe Clickhouse do
       it "parses UInt8" do
         response = connection.query("SELECT toUInt8(0), toUInt8(127), toUInt8(255)")
 
-        expect(response).to be_success
         expect(response.rows).to eq([[0, 127, 255]])
       end
 
@@ -359,7 +358,6 @@ RSpec.describe Clickhouse do
       it "parses multiple data blocks" do
         response = connection.query("SELECT number FROM system.numbers LIMIT 100000")
 
-        expect(response).to be_success
         expect(response.rows.size).to eq(100_000)
         expect(response.rows.first).to eq([0])
         expect(response.rows.last).to eq([99999])
@@ -393,18 +391,16 @@ RSpec.describe Clickhouse do
     end
 
     describe "error handling" do
-      it "returns error for invalid query" do
-        response = connection.query("INVALID SQL")
-
-        expect(response).to be_failure
-        expect(response.error).to include("Syntax error")
+      it "raises QueryError for invalid query" do
+        expect {
+          connection.query("INVALID SQL")
+        }.to raise_error(Clickhouse::QueryError, /Syntax error/)
       end
 
-      it "returns error for non-existent table" do
-        response = connection.query("SELECT * FROM non_existent_table_12345")
-
-        expect(response).to be_failure
-        expect(response.error).to include("UNKNOWN_TABLE")
+      it "raises QueryError for non-existent table" do
+        expect {
+          connection.query("SELECT * FROM non_existent_table_12345")
+        }.to raise_error(Clickhouse::QueryError, /UNKNOWN_TABLE/)
       end
 
       it "raises UnsupportedTypeError for JSON type" do
@@ -419,6 +415,17 @@ RSpec.describe Clickhouse do
         response = connection.query("SELECT 1 as id, 'alice' as name")
 
         expect(response.to_a).to eq([{"id" => 1, "name" => "alice"}])
+      end
+    end
+
+    describe "query parameters" do
+      it "passes parameters to query" do
+        response = connection.query(
+          "SELECT {id:UInt32} as id, {name:String} as name",
+          params: {param_id: 42, param_name: "alice"}
+        )
+
+        expect(response.rows).to eq([[42, "alice"]])
       end
     end
   end

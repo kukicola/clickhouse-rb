@@ -24,10 +24,9 @@ module Clickhouse
     # @param options [Hash] query options
     # @option options [Hash] :params query parameters
     # @return [Response] query response with rows, columns, and metadata
+    # @raise [QueryError] if the query fails
     def query(sql, options = {})
       result = @transport.execute(sql, options)
-      return Response.new(error: result.error, summary: result.summary) unless result.success
-
       NativeFormatParser.new(result.body).parse.with(summary: result.summary)
     end
   end
