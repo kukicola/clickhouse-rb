@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "clickhouse/version"
+require_relative "clickhouse/null_instrumenter"
 require_relative "clickhouse/config"
 require_relative "clickhouse/transport_result"
 require_relative "clickhouse/http_transport"

@@ -21,7 +21,8 @@ module Clickhouse
       password: "",
       connection_timeout: 5,
       pool_size: 100,
-      pool_timeout: 5
+      pool_timeout: 5,
+      instrumenter: NullInstrumenter.new
     }.freeze
 
     # @return [String] URL scheme (http or https)
@@ -33,7 +34,8 @@ module Clickhouse
     # @return [Integer] Connection timeout in seconds
     # @return [Integer] Connection pool size
     # @return [Integer] Pool checkout timeout in seconds
-    attr_accessor :scheme, :host, :port, :database, :username, :password, :connection_timeout, :pool_size, :pool_timeout
+    # @return [#instrument] Instrumenter for query instrumentation
+    attr_accessor :scheme, :host, :port, :database, :username, :password, :connection_timeout, :pool_size, :pool_timeout, :instrumenter
 
     # Creates a new configuration instance.
     #

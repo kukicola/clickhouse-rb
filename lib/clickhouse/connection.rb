@@ -26,8 +26,10 @@ module Clickhouse
     # @return [Response] query response with rows, columns, and metadata
     # @raise [QueryError] if the query fails
     def query(sql, options = {})
-      result = @transport.execute(sql, options)
-      NativeFormatParser.new(result.body).parse.with(summary: result.summary)
+      @config.instrumenter.instrument("query.clickhouse", {sql: sql}) do
+        result = @transport.execute(sql, options)
+        NativeFormatParser.new(result.body).parse.with(summary: result.summary)
+      end
     end
   end
 end

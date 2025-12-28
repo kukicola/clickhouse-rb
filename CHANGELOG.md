@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+- Added instrumentation support with configurable `instrumenter` (defaults to `NullInstrumenter`)
 - Query errors now raise `Clickhouse::QueryError` instead of returning a failed response
 - Removed `Response#success?`, `Response#failure?`, and `Response#error` methods
 

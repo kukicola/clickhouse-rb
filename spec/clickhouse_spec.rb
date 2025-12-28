@@ -429,4 +429,30 @@ RSpec.describe Clickhouse do
       end
     end
   end
+
+  describe "instrumentation" do
+    let(:fake_instrumenter) do
+      Class.new do
+        attr_reader :events
+
+        def instrument(name, payload, &block)
+          @events ||= []
+          @events << {name: name, payload: payload}
+          block.call
+        end
+      end
+    end
+
+    let(:instrumenter_instance) { fake_instrumenter.new }
+    let(:config) { Clickhouse.config.dup.tap { |c| c.instrumenter = instrumenter_instance } }
+    let(:connection) { Clickhouse::Connection.new(config) }
+
+    it "calls instrumenter on query" do
+      connection.query("SELECT 1")
+
+      expect(instrumenter_instance.events.size).to eq(1)
+      expect(instrumenter_instance.events.first[:name]).to eq("query.clickhouse")
+      expect(instrumenter_instance.events.first[:payload][:sql]).to eq("SELECT 1")
+    end
+  end
 end

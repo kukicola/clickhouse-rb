@@ -53,10 +53,8 @@ end
 conn = Clickhouse::Connection.new
 response = conn.query("SELECT * FROM users WHERE id = 1")
 
-if response.success?
-  response.rows.each do |row|
-    puts row.inspect
-  end
+response.rows.each do |row|
+  puts row.inspect
 end
 ```
 
@@ -145,6 +143,24 @@ response = conn.query(
 | `connection_timeout` | `5` | Connection timeout in seconds |
 | `pool_size` | `100` | Connection pool size |
 | `pool_timeout` | `5` | Pool checkout timeout in seconds |
+| `instrumenter` | `NullInstrumenter` | Instrumenter for query instrumentation |
+
+## Instrumentation
+
+You can instrument queries by providing an instrumenter that responds to `#instrument`:
+
+```ruby
+Clickhouse.configure do |config|
+  config.instrumenter = ActiveSupport::Notifications
+end
+
+# Subscribe to events
+ActiveSupport::Notifications.subscribe("query.clickhouse") do |name, start, finish, id, payload|
+  puts "Query: #{payload[:sql]} took #{finish - start}s"
+end
+```
+
+The instrumenter receives event name `"query.clickhouse"` and payload `{sql: "..."}`.
 
 ## Error Handling
 
