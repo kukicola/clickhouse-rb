@@ -11,9 +11,9 @@ module Clickhouse
 
     # Creates a new parser.
     #
-    # @param body [#readpartial] response body to parse
+    # @param body [#read] response body to parse
     def initialize(body)
-      @body = body
+      @reader = BodyReader.new(body)
       @columns = []
       @types = []
       @rows = []
@@ -24,11 +24,10 @@ module Clickhouse
     # @return [Response] parsed response with columns, types, and rows
     # @raise [UnsupportedTypeError] if an unsupported data type is encountered
     def parse
-      @reader = BufferedReader.new(@body)
       parse_block until @reader.eof?
       Response.new(columns: @columns, types: @types, rows: @rows)
     ensure
-      @reader.flush
+      @reader.close
     end
 
     private
@@ -248,8 +247,9 @@ module Clickhouse
       result = 0
       shift = 0
       loop do
-        byte = @reader.read_byte
-        return result if byte.nil?
+        byte_str = @reader.read(1)
+        return result if byte_str.nil? || byte_str.empty?
+        byte = byte_str.ord
         result |= (byte & 0x7F) << shift
         break if (byte & 0x80) == 0
         shift += 7

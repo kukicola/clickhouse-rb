@@ -6,9 +6,8 @@ require_relative "clickhouse/config"
 require_relative "clickhouse/transport_result"
 require_relative "clickhouse/http_transport"
 require_relative "clickhouse/connection"
-require_relative "clickhouse/pool"
 require_relative "clickhouse/response"
-require_relative "clickhouse/buffered_reader"
+require_relative "clickhouse/body_reader"
 require_relative "clickhouse/native_format_parser"
 
 # Ruby client for ClickHouse database with Native format support.

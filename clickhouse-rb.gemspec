@@ -26,6 +26,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "bigdecimal", "~> 3.1"
-  spec.add_dependency "connection_pool", "~> 3.0"
-  spec.add_dependency "http", "~> 5.0"
+  spec.add_dependency "httpx", "~> 1.0"
 end
