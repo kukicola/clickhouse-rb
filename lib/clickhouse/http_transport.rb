@@ -36,7 +36,7 @@ module Clickhouse
       query_params = {database: @config.database}.merge(options[:params] || {})
       response = @http_client.post("/", params: query_params, body: sql, headers: @default_headers)
 
-      summary = JSON.parse(response.headers["X-ClickHouse-Summary"])
+      summary = JSON.parse(response.headers["X-ClickHouse-Summary"], symbolize_names: true)
 
       raise QueryError, response.body.to_s unless response.status.success?
 

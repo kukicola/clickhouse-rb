@@ -361,8 +361,8 @@ RSpec.describe Clickhouse do
         expect(response.rows.size).to eq(100_000)
         expect(response.rows.first).to eq([0])
         expect(response.rows.last).to eq([99999])
-        expect(response.columns).to eq(["number"])
-        expect(response.types).to eq(["UInt64"])
+        expect(response.columns).to eq([:number])
+        expect(response.types).to eq([:UInt64])
       end
     end
 
@@ -370,13 +370,13 @@ RSpec.describe Clickhouse do
       it "returns column names" do
         response = connection.query("SELECT 1 as id, 'test' as name")
 
-        expect(response.columns).to eq(%w[id name])
+        expect(response.columns).to eq(%i[id name])
       end
 
       it "returns column types" do
         response = connection.query("SELECT toUInt8(1) as id, 'test' as name")
 
-        expect(response.types).to eq(%w[UInt8 String])
+        expect(response.types).to eq(%i[UInt8 String])
       end
     end
 
@@ -385,8 +385,8 @@ RSpec.describe Clickhouse do
         response = connection.query("SELECT 1")
 
         expect(response.summary).to be_a(Hash)
-        expect(response.summary).to have_key("read_rows")
-        expect(response.summary).to have_key("read_bytes")
+        expect(response.summary).to have_key(:read_rows)
+        expect(response.summary).to have_key(:read_bytes)
       end
     end
 
@@ -414,7 +414,7 @@ RSpec.describe Clickhouse do
       it "returns rows as hashes" do
         response = connection.query("SELECT 1 as id, 'alice' as name")
 
-        expect(response.to_a).to eq([{"id" => 1, "name" => "alice"}])
+        expect(response.to_a).to eq([{id: 1, name: "alice"}])
       end
     end
 
