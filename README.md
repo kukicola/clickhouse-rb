@@ -5,8 +5,8 @@ Fast Ruby client for ClickHouse database using the Native binary format for effi
 ## Features
 
 - Native binary format parsing (faster than JSON/TSV)
-- Persistent HTTP connections
-- Connection pooling for thread-safe concurrent access
+- Persistent HTTP connections with built-in connection pooling
+- Thread-safe concurrent access
 - Supports all common ClickHouse data types
 
 ## Installation
@@ -58,25 +58,24 @@ response.each do |row|
 end
 ```
 
-### Connection Pool
+### Thread-Safe Usage
 
-For multi-threaded applications:
+Connections use httpx's built-in connection pooling, making them safe for concurrent use:
 
 ```ruby
-pool = Clickhouse::Pool.new
+conn = Clickhouse::Connection.new
 
-# Thread-safe queries
 threads = 10.times.map do
-  Thread.new { pool.query("SELECT 1") }
+  Thread.new { conn.query("SELECT 1") }
 end
 threads.each(&:join)
 ```
 
-Pool size and timeout are configured globally:
+Pool settings are configured globally:
 
 ```ruby
 Clickhouse.configure do |config|
-  config.pool_size = 10
+  config.pool_size = 10 
   config.pool_timeout = 5
 end
 ```
