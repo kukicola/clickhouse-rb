@@ -46,8 +46,8 @@ module Clickhouse
         col_type = read_string
 
         if @columns.length < num_columns
-          @columns << col_name
-          @types << col_type
+          @columns << col_name.to_sym
+          @types << col_type.to_sym
         end
 
         columns_data << read_column(col_type, num_rows)

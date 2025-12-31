@@ -51,10 +51,10 @@ end
 
 ```ruby
 conn = Clickhouse::Connection.new
-response = conn.query("SELECT * FROM users WHERE id = 1")
+response = conn.query("SELECT id, name FROM users WHERE active = true")
 
-response.rows.each do |row|
-  puts row.inspect
+response.each do |row|
+  puts "#{row[:id]}: #{row[:name]}"
 end
 ```
 
@@ -83,19 +83,29 @@ end
 
 ### Working with Results
 
+Response objects implement `Enumerable`, allowing direct iteration:
+
 ```ruby
 response = conn.query("SELECT id, name, created_at FROM users")
 
+# Iterate over rows as hashes with symbol keys
+response.each { |row| puts row[:name] }
+
+# Use any Enumerable method
+response.map { |row| row[:id] }
+response.select { |row| row[:id] > 10 }
+response.first   # => {id: 1, name: "Alice", created_at: 2024-01-01 00:00:00 UTC}
+
 # Access raw rows (arrays)
 response.rows      # => [[1, "Alice", 2024-01-01 00:00:00 UTC], ...]
-response.columns   # => ["id", "name", "created_at"]
-response.types     # => ["UInt64", "String", "DateTime"]
+response.columns   # => [:id, :name, :created_at]
+response.types     # => [:UInt64, :String, :DateTime]
 
 # Convert to array of hashes
-response.to_a      # => [{"id" => 1, "name" => "Alice", ...}, ...]
+response.to_a      # => [{id: 1, name: "Alice", ...}, ...]
 
-# Query summary from ClickHouse
-response.summary   # => {"read_rows" => "1", "read_bytes" => "42", ...}
+# Query summary from ClickHouse (symbol keys)
+response.summary   # => {read_rows: "1", read_bytes: "42", ...}
 ```
 
 ### Query Parameters
