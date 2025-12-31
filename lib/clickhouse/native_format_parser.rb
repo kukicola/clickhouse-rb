@@ -65,14 +65,14 @@ module Clickhouse
       when "UInt16" then read_uint16_column(num_rows)
       when "UInt32" then read_uint32_column(num_rows)
       when "UInt64" then read_uint64_column(num_rows)
-      when "UInt128" then Array.new(num_rows) { read_uint128 }
-      when "UInt256" then Array.new(num_rows) { read_uint256 }
+      when "UInt128" then read_uint128_column(num_rows)
+      when "UInt256" then read_uint256_column(num_rows)
       when "Int8" then read_int8_column(num_rows)
       when "Int16" then read_int16_column(num_rows)
       when "Int32" then read_int32_column(num_rows)
       when "Int64" then read_int64_column(num_rows)
-      when "Int128" then Array.new(num_rows) { read_int128 }
-      when "Int256" then Array.new(num_rows) { read_int256 }
+      when "Int128" then read_int128_column(num_rows)
+      when "Int256" then read_int256_column(num_rows)
 
       # Floats
       when "Float32" then read_float32_column(num_rows)
@@ -82,7 +82,7 @@ module Clickhouse
       when "Bool" then read_bool_column(num_rows)
 
       # Strings
-      when "String" then Array.new(num_rows) { read_string }
+      when "String" then read_string_column(num_rows)
       when /^FixedString\((\d+)\)$/ then read_fixed_string_column($1.to_i, num_rows)
 
       # Dates and Times
@@ -92,11 +92,11 @@ module Clickhouse
       when /^DateTime64\((\d+)(?:,.*)?\)$/ then read_datetime64_column($1.to_i, num_rows)
 
       # UUID
-      when "UUID" then Array.new(num_rows) { read_uuid }
+      when "UUID" then read_uuid_column(num_rows)
 
       # IP addresses
-      when "IPv4" then Array.new(num_rows) { read_ipv4 }
-      when "IPv6" then Array.new(num_rows) { read_ipv6 }
+      when "IPv4" then read_ipv4_column(num_rows)
+      when "IPv6" then read_ipv6_column(num_rows)
 
       # Decimals - ClickHouse always returns Decimal(precision, scale)
       when /^Decimal\((\d+),\s*(\d+)\)$/ then read_decimal_column($1.to_i, $2.to_i, num_rows)
@@ -145,6 +145,14 @@ module Clickhouse
       @reader.read(num_rows * 8).unpack("Q<*")
     end
 
+    def read_uint128_column(num_rows)
+      Array.new(num_rows) { read_le_bytes(16) }
+    end
+
+    def read_uint256_column(num_rows)
+      Array.new(num_rows) { read_le_bytes(32) }
+    end
+
     def read_int8_column(num_rows)
       @reader.read(num_rows).unpack("c*")
     end
@@ -161,6 +169,14 @@ module Clickhouse
       @reader.read(num_rows * 8).unpack("q<*")
     end
 
+    def read_int128_column(num_rows)
+      Array.new(num_rows) { read_signed_le_bytes(16) }
+    end
+
+    def read_int256_column(num_rows)
+      Array.new(num_rows) { read_signed_le_bytes(32) }
+    end
+
     def read_float32_column(num_rows)
       @reader.read(num_rows * 4).unpack("e*")
     end
@@ -171,6 +187,10 @@ module Clickhouse
 
     def read_bool_column(num_rows)
       @reader.read(num_rows).bytes.map { |b| b == 1 }
+    end
+
+    def read_string_column(num_rows)
+      Array.new(num_rows) { read_string }
     end
 
     def read_fixed_string_column(length, num_rows)
@@ -195,6 +215,18 @@ module Clickhouse
         nsec = ticks * scale
         Time.at(nsec / 1_000_000_000, nsec % 1_000_000_000, :nanosecond).utc
       end
+    end
+
+    def read_uuid_column(num_rows)
+      Array.new(num_rows) { read_uuid }
+    end
+
+    def read_ipv4_column(num_rows)
+      Array.new(num_rows) { read_ipv4 }
+    end
+
+    def read_ipv6_column(num_rows)
+      Array.new(num_rows) { read_ipv6 }
     end
 
     def read_decimal_column(precision, scale, num_rows)
@@ -230,10 +262,6 @@ module Clickhouse
     end
 
     def read_uint64 = @reader.read(8).unpack1("Q<")
-    def read_uint128 = read_le_bytes(16)
-    def read_uint256 = read_le_bytes(32)
-    def read_int128 = read_signed_le_bytes(16)
-    def read_int256 = read_signed_le_bytes(32)
 
     def read_uuid
       first_half = @reader.read(8).bytes.reverse
