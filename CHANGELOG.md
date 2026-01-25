@@ -1,5 +1,7 @@
 ## Unreleased
 
+## [0.4.0] - 2026-01-25
+
 - Replace http.rb with httpx for HTTP client, remove `Pool` class ([#3](https://github.com/kukicola/clickhouse-rb/pull/3))
 
 ## [0.3.0] - 2025-12-31
