@@ -15,7 +15,11 @@ module Clickhouse
       @base_url = "#{config.scheme}://#{config.host}:#{config.port}"
       @http_client = HTTPX.plugin(:persistent, close_on_fork: true)
         .with(
-          timeout: {connect_timeout: config.connection_timeout},
+          timeout: {
+            connect_timeout: config.connection_timeout,
+            read_timeout: config.read_timeout,
+            write_timeout: config.write_timeout
+          },
           pool_options: {
             max_connections_per_origin: config.pool_size,
             pool_timeout: config.pool_timeout

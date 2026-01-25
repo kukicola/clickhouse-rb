@@ -12,6 +12,8 @@ RSpec.describe Clickhouse::Config do
       expect(config.username).to eq("")
       expect(config.password).to eq("")
       expect(config.connection_timeout).to eq(5)
+      expect(config.read_timeout).to eq(60)
+      expect(config.write_timeout).to eq(60)
     end
 
     it "accepts custom values" do
@@ -22,7 +24,9 @@ RSpec.describe Clickhouse::Config do
         database: "analytics",
         username: "admin",
         password: "secret",
-        connection_timeout: 10
+        connection_timeout: 10,
+        read_timeout: 120,
+        write_timeout: 30
       )
 
       expect(config.scheme).to eq("https")
@@ -32,6 +36,8 @@ RSpec.describe Clickhouse::Config do
       expect(config.username).to eq("admin")
       expect(config.password).to eq("secret")
       expect(config.connection_timeout).to eq(10)
+      expect(config.read_timeout).to eq(120)
+      expect(config.write_timeout).to eq(30)
     end
 
     it "merges custom values with defaults" do
